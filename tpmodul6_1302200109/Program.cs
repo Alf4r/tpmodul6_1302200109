@@ -1,5 +1,6 @@
 ﻿// See https://aka.ms/new-console-template for more information
 using System;
+using System.Diagnostics.Contracts;
 
 class SayaTubeVideo
 {
@@ -18,7 +19,21 @@ class SayaTubeVideo
     // Method untuk menambah jumlah playCount
     public void IncreasePlayCount(int countToAdd)
     {
-        playCount += countToAdd;
+        // Prekondisi: Input penambahan play count maksimal 10.000.000 per panggilan method
+        Contract.Requires(countToAdd <= 10000000, "Input penambahan play count melebihi batas maksimal.");
+
+        // Exception Handling: Pastikan tidak terjadi overflow
+        try
+        {
+            checked
+            {
+                playCount += countToAdd;
+            }
+        }
+        catch (OverflowException ex)
+        {
+            Console.WriteLine("Terjadi overflow saat menambah jumlah play count.");
+        }
     }
 
     // Method untuk mencetak detail video
@@ -42,14 +57,25 @@ class Program
 {
     static void Main(string[] args)
     {
-        // Membuat objek SayaTubeVideo dengan judul video
-        string judulVideo = "Tutorial Design By Contract – ALFAR";
+        // Uji prekondisi dan exception handling
+        TestPreconditionsAndExceptions();
+    }
+
+    static void TestPreconditionsAndExceptions()
+    {
+        // Uji prekondisi
+        string judulVideo = "Tutorial Design By Contract – ALFAR ";
         SayaTubeVideo video = new SayaTubeVideo(judulVideo);
+        video.IncreasePlayCount(100000000); // Ini akan memicu prekondisi
 
-        // Menambah jumlah playCount
-        video.IncreasePlayCount(10);
+        // Uji exception handling dengan loop
+        for (int i = 0; i < 5; i++)
+        {
+            video.IncreasePlayCount(int.MaxValue / 2); // Ini akan memicu overflow
+        }
 
-        // Mencetak detail video
+        // Mencetak detail video setelah pengujian
         video.PrintVideoDetails();
     }
 }
+
